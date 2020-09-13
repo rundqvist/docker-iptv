@@ -1,6 +1,6 @@
 #!/bin/sh
 
-chmod +x /app/iptv/update.sh
+chmod +x /app/epg/update.sh
 
 var -k provider svt.se xmltv.xmltv.se
 var -k provider nrk.no xmltv.xmltv.se
@@ -12,6 +12,3 @@ var -k channels -a svt.se -v svt2.svt.se
 
 var -k channels nrk.no nrk1.nrk.no
 
-
-
-#/app/iptv/update.sh

@@ -6,7 +6,7 @@ WORKDIR /app
 
 COPY root /
 
-RUN apk --update --no-cache add coreutils xmltv perl-datetime-format-strptime
+RUN apk --update --no-cache add coreutils nginx xmltv perl-datetime-format-strptime
 # xmltv
 # perl-datetime-format-strptime - dependency for tv_merge
 RUN mkdir -p /cache/iptv/xmltv

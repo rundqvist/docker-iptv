@@ -7,7 +7,7 @@ fi
 
 CACHE_PATH="/cache/iptv/"
 EPG_CACHE_PATH=$CACHE_PATH"epg/"
-EPG_OUTPUT_PATH=$CACHE_PATH
+EPG_OUTPUT_PATH="/www/"
 mkdir -p $EPG_CACHE_PATH
 mkdir -p $EPG_OUTPUT_PATH
 
@@ -18,14 +18,14 @@ while [ $DAEMON -eq 1 ] ; do
     #
     if [ "$(var epgUpdatedDate)" != "$(date +%Y-%m-%d)" ] ; then
 
-        log -i iptv "Updating EPG"
-        log -d iptv "Last update was: $(var epgUpdatedDate)"
+        log -i epg "Updating EPG"
+        log -d epg "Last update was: $(var epgUpdatedDate)"
 
         for service in $(var IPTV_SERVICES) ; do
 
             provider="$(var -k provider $service)"
             format="$(var -k format $provider)"
-            log -v iptv "Service: $service, provider: $provider, format: $format"
+            log -v epg "Service: $service, provider: $provider, format: $format"
             
             count=0
             while [ $count -ne $(var IPTV_DAYS) ] ; do
@@ -38,18 +38,18 @@ while [ $DAEMON -eq 1 ] ; do
 
                     if [ ! -f $EPG_CACHE_PATH$file ] ; then
 
-                        log -v iptv "Download: $url to $EPG_CACHE_PATH$file"
+                        log -v epg "Download: $url to $EPG_CACHE_PATH$file"
                         wget -P $EPG_CACHE_PATH $url
 
                         if [ $? -eq 0 ] ; then
                             var epgUpdated true
                             var epgUpdatedDate $(date +%Y-%m-%d)
                         else
-                            log -e iptv "Failed to download $url"
+                            log -e epg "Failed to download $url"
                         fi
                         
                     else
-                        log -v iptv "file $EPG_CACHE_PATH$file exists"
+                        log -v epg "file $EPG_CACHE_PATH$file exists"
                     fi
 
                 done
@@ -60,7 +60,7 @@ while [ $DAEMON -eq 1 ] ; do
         done
 
     else
-        log -v iptv "EPG recently updated ($(var epgUpdatedDate)). Skipping."
+        log -v epg "EPG recently updated ($(var epgUpdatedDate)). Skipping."
     fi
 
     #
@@ -69,10 +69,10 @@ while [ $DAEMON -eq 1 ] ; do
     files=$(find $EPG_CACHE_PATH -type f -mtime +$(var IPTV_DAYS) -print)
     count=$(echo "$files" | sed '/^\s*$/d' | wc -l)
     
-    log -d iptv "Deleting epg older than $(var IPTV_DAYS) days ($count files)"
+    log -d epg "Deleting epg older than $(var IPTV_DAYS) days ($count files)"
 
     for file in $files ; do
-        log -v iptv "Deleting file: $file"
+        log -v epg "Deleting file: $file"
         rm -f $file
     done
 
@@ -88,12 +88,12 @@ while [ $DAEMON -eq 1 ] ; do
         for file in $(ls $EPG_CACHE_PATH) ; do
             if [ -f $EPG_OUTPUT_PATH"epg-tmp.xml" ] ; then
 
-                log -v iptv "Merging $file"
+                log -v epg "Merging $file"
                 tv_merge -i $EPG_OUTPUT_PATH"epg-tmp.xml" -m $EPG_CACHE_PATH$file -o $EPG_OUTPUT_PATH"epg-tmp.xml"
 
             else
 
-                log -v iptv "Copying $file"
+                log -v epg "Copying $file"
                 cp $EPG_CACHE_PATH$file $EPG_OUTPUT_PATH"epg-tmp.xml"
 
             fi
