@@ -1,14 +1,14 @@
 #!/bin/sh
 
-chmod +x /app/epg/update.sh
+chmod +x "/app/epg/xmltv.se.sh"
 
-var -k provider svt.se xmltv.xmltv.se
+var -k provider svtplay.se xmltv.xmltv.se
 var -k provider nrk.no xmltv.xmltv.se
 
-var -k format xmltv.xmltv.se "http://{provider}/{channel}_{date}.xml"
-
-var -k channels svt.se svt1.svt.se
-var -k channels -a svt.se -v svt2.svt.se
+var -k channels svtplay.se svt1.svt.se
+var -k channels -a svtplay.se -v svt2.svt.se
 
 var -k channels nrk.no nrk1.nrk.no
+var -k channels -a nrk.no -v nrk2.nrk.no
 
+var -k epgDaemon xmltv.se true

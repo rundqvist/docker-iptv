@@ -1,17 +1,14 @@
 #!/bin/sh
 
-DAEMON=0
-if [ "$1" = "--as-daemon" ] ; then 
-    DAEMON=1; 
-fi
-
 CACHE_PATH="/cache/iptv/"
 EPG_CACHE_PATH=$CACHE_PATH"epg/"
 EPG_OUTPUT_PATH="/www/"
 mkdir -p $EPG_CACHE_PATH
 mkdir -p $EPG_OUTPUT_PATH
 
-while [ $DAEMON -eq 1 ] ; do
+format="http://{provider}/{channel}_{date}.xml"
+
+while [ "$(var -k epgDaemon xmltv.se)" = "true" ] ; do
 
     #
     # Download epg
@@ -24,7 +21,6 @@ while [ $DAEMON -eq 1 ] ; do
         for service in $(var IPTV_SERVICES) ; do
 
             provider="$(var -k provider $service)"
-            format="$(var -k format $provider)"
             log -v epg "Service: $service, provider: $provider, format: $format"
             
             count=0
@@ -50,6 +46,7 @@ while [ $DAEMON -eq 1 ] ; do
                         
                     else
                         log -v epg "file $EPG_CACHE_PATH$file exists"
+                        touch $EPG_CACHE_PATH$file
                     fi
 
                 done
@@ -66,10 +63,10 @@ while [ $DAEMON -eq 1 ] ; do
     #
     # Delete old files
     #
-    files=$(find $EPG_CACHE_PATH -type f -mtime +$(var IPTV_DAYS) -print)
+    files=$(find $EPG_CACHE_PATH -type f -mtime +0 -print)
     count=$(echo "$files" | sed '/^\s*$/d' | wc -l)
     
-    log -d epg "Deleting epg older than $(var IPTV_DAYS) days ($count files)"
+    log -d epg "Deleting old epg ($count files)"
 
     for file in $files ; do
         log -v epg "Deleting file: $file"
@@ -81,7 +78,7 @@ while [ $DAEMON -eq 1 ] ; do
     #
     if [ "$(var epgUpdated)" = "true" ] || [ ! -f $EPG_OUTPUT_PATH"epg.xml" ] ; then
 
-        log -d "Merging epg"
+        log -d epg "Merging..."
 
         rm -f $EPG_OUTPUT_PATH"epg-tmp.xml"
 
