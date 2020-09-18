@@ -15,6 +15,10 @@ RUN apk update && apk upgrade && apk add --no-cache python3 && \
 
 COPY root /
 
+RUN wget -P /app/telly/ https://github.com/tombowditch/telly/releases/download/v0.4.5/telly-linux-amd64 && \
+    mv /app/telly/telly-* /app/telly/telly && \
+    chmod +x /app/telly/telly
+
 ENV IPTV_SERVICES='' \
     IPTV_DAYS='2'
 
