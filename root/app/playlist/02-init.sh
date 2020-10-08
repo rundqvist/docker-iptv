@@ -7,12 +7,15 @@ echo "#EXTM3U x-tvg-url=\"http://$(var HOST_IP):8888/iptv/epg.xml\"" >> /www/pla
 
 for service in $(var IPTV_SERVICES)
 do
-    log -v playlist "Adding service $service"
+    log -v "Adding service $service"
     for channel in $(var -k channels $service)
     do
-        log -v playlist "Adding channel $channel"
-        echo "#EXTINF:-1 tvg-id=\"$channel\",$channel" >> /www/playlist.m3u8
-        echo "http://$(var HOST_IP):1935/live/$channel" >> /www/playlist.m3u8
+        log -v "Adding channel $channel"
+        #echo "" >> /www/playlist.m3u8
+        echo "#EXTINF:-1 tvg-id=\"$(var -k iptv.port $channel)\" tvg-name=\"$(var -k iptv.name $channel)\",$(var -k iptv.name $channel)" >> /www/playlist.m3u8
+        #echo "#EXTINF:-1 tvg-id=\"$(var -k iptv.port $channel)\" tvg-name=\"$(var -k iptv.name $channel)\"" >> /www/playlist.m3u8
+        echo "http://$(var HOST_IP):1935/$(var -k iptv.port $channel).ts" >> /www/playlist.m3u8
+        
     done
 done
 

@@ -12,3 +12,5 @@ var -k channels nrk.no nrk1.nrk.no
 var -k channels -a nrk.no -v nrk2.nrk.no
 
 var -k epgDaemon xmltv.se true
+
+# https://chanlogos.xmltv.se
