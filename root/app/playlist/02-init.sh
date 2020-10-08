@@ -12,7 +12,7 @@ do
     do
         log -v playlist "Adding channel $channel"
         echo "#EXTINF:-1 tvg-id=\"$channel\",$channel" >> /www/playlist.m3u8
-        echo "rtmp://$(var HOST_IP):1935/live/$channel" >> /www/playlist.m3u8
+        echo "http://$(var HOST_IP):1935/live/$channel" >> /www/playlist.m3u8
     done
 done
 
