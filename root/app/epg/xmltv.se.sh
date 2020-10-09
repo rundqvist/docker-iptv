@@ -28,7 +28,7 @@ while [ "$(var -k epgDaemon xmltv.se)" = "true" ] ; do
 
                 filedate=$(date +%Y-%m-%d -d "+$count day")
                 
-                for channel in $(var -k channels $service) ; do
+                for channel in $(var -k iptv.channel $service) ; do
                     url=$(echo "$format" | sed -e "s/{provider}/$provider/" -e "s/{channel}/$channel/" -e "s/{date}/$filedate/")
                     file=${url##*/}
 

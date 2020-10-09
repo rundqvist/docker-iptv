@@ -8,7 +8,7 @@ echo "#EXTM3U x-tvg-url=\"http://$(var HOST_IP):8888/iptv/epg.xml\"" >> /www/pla
 for service in $(var IPTV_SERVICES)
 do
     log -v "Adding service $service"
-    for channel in $(var -k channels $service)
+    for channel in $(var -k iptv.channel $service)
     do
         log -v "Adding channel $channel"
         #echo "" >> /www/playlist.m3u8
