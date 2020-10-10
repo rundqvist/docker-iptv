@@ -12,7 +12,7 @@ deviceAuth="rundqvist"
 baseUrl="http://$hostIp:8888"
 lineupUrl="$baseUrl/lineup.json"
 
-mkdir /www/
+mkdir -p /www/
 
 cat << EOF > /www/device.xml
 <root xmlns="urn:schemas-upnp-org:device-1-0">
@@ -58,9 +58,9 @@ do
     for channel in $(var -k iptv.channel $service)
     do
 cat << EOF >> /www/lineup.json
-$(var comma){"GuideNumber":"$(var -k iptv.port $channel)","GuideName":"$(var -k iptv.name $channel)","URL":"http://$(var HOST_IP):1935/$(var -k iptv.port $channel).ts"}
+$(var delimiter){"GuideNumber":"$(var -k iptv.port $channel)","GuideName":"$(var -k iptv.name $channel)","URL":"http://$(var HOST_IP):1935/$(var -k iptv.port $channel).ts"}
 EOF
-var comma ","
+var delimiter ","
     done
 done
 echo "]" >> /www/lineup.json
