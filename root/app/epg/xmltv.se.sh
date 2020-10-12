@@ -13,13 +13,14 @@ while [ "$(var -k epgDaemon xmltv.se)" = "true" ] ; do
     #
     # Download epg
     #
-    if [ "$(var epgUpdatedDate)" != "$(date +%Y-%m-%d)" ] ; then
+    if [ "$(var epgUpdatedDate)" != "$(date +%Y-%m-%d)" ]
+    then
 
         log -i epg "Updating EPG"
         log -d epg "Last update was: $(var epgUpdatedDate)"
 
-        for service in $(var IPTV_SERVICES) ; do
-
+        for service in $(var IPTV_SERVICES)
+        do
             provider="$(var -k provider $service)"
             log -v epg "Service: $service, provider: $provider, format: $format"
             
@@ -28,7 +29,19 @@ while [ "$(var -k epgDaemon xmltv.se)" = "true" ] ; do
 
                 filedate=$(date +%Y-%m-%d -d "+$count day")
                 
-                for channel in $(var -k iptv.channel $service) ; do
+                for channel in $(var -k iptv.channel $service)
+                do
+
+                    rm -f $CACHE_PATH"channel_$channel.xml"
+                    name=$(var -k channel.name "$channel")
+
+cat << EOF > $CACHE_PATH"channel_$channel.xml"
+<channel id="$channel">
+  <display-name>$name</display-name>
+  <icon src="https://chanlogos.xmltv.se/$channel.png" />
+</channel>
+EOF
+
                     url=$(echo "$format" | sed -e "s/{provider}/$provider/" -e "s/{channel}/$channel/" -e "s/{date}/$filedate/")
                     file=${url##*/}
 
@@ -73,32 +86,46 @@ while [ "$(var -k epgDaemon xmltv.se)" = "true" ] ; do
         rm -f $file
     done
 
+    if [ ! -f $EPG_OUTPUT_PATH"epg.xml" ] && [ -f $CACHE_PATH"epg.xml" ]
+    then
+        cp -f $CACHE_PATH"epg.xml" $EPG_OUTPUT_PATH"epg.xml"
+    fi
+
     #
     # Create main epg file if updated or file doesn't exist
     #
-    if [ "$(var epgUpdated)" = "true" ] || [ ! -f $EPG_OUTPUT_PATH"epg.xml" ] ; then
+    if [ "$(var epgUpdated)" = "true" ] || [ ! -f $CACHE_PATH"epg.xml" ] ; then
 
         log -d epg "Merging..."
 
-        rm -f $EPG_OUTPUT_PATH"epg-tmp.xml"
+        rm -f $CACHE_PATH"epg-tmp.xml"
 
-        for file in $(ls $EPG_CACHE_PATH) ; do
-            if [ -f $EPG_OUTPUT_PATH"epg-tmp.xml" ] ; then
-
+        for file in $(ls $EPG_CACHE_PATH)
+        do
+            if [ -f $CACHE_PATH"epg-tmp.xml" ]
+            then
                 log -v epg "Merging $file"
-                tv_merge -i $EPG_OUTPUT_PATH"epg-tmp.xml" -m $EPG_CACHE_PATH$file -o $EPG_OUTPUT_PATH"epg-tmp.xml"
-
+                tv_merge -i $CACHE_PATH"epg-tmp.xml" -m $EPG_CACHE_PATH$file -o $CACHE_PATH"epg-tmp.xml"
             else
-
                 log -v epg "Copying $file"
-                cp $EPG_CACHE_PATH$file $EPG_OUTPUT_PATH"epg-tmp.xml"
-
+                cp $EPG_CACHE_PATH$file $CACHE_PATH"epg-tmp.xml"
             fi
         done
 
-        log -v "Moving "$EPG_OUTPUT_PATH"epg-tmp.xml to "$EPG_OUTPUT_PATH"epg.xml"
-        mv -f $EPG_OUTPUT_PATH"epg-tmp.xml" $EPG_OUTPUT_PATH"epg.xml"
+        # Add rowbreak between <tv> and <programme>
+        sed -i 's/<tv\([^>]*\)></<tv\1>\n</' $CACHE_PATH"epg-tmp.xml"
+        
+        # Add channels to xml
+        for file in $(ls $CACHE_PATH"channel_"*)
+        do
+            log -d "Adding channel: $file"
+            sed -e "/<tv\([^>]*\)>/r $file" -i -e '$G:x' $CACHE_PATH"epg-tmp.xml"
+        done
 
+        log -v "Moving "$CACHE_PATH"epg-tmp.xml to "$CACHE_PATH"epg.xml"
+        mv -f $CACHE_PATH"epg-tmp.xml" $CACHE_PATH"epg.xml"
+
+        cp -f $CACHE_PATH"epg.xml" $EPG_OUTPUT_PATH"epg.xml"
     else
         log -d "No updates. Skipping merge."
     fi

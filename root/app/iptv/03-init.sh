@@ -1,20 +1,23 @@
 #!/bin/sh
 
 hostIp="$(var HOST_IP)"
+var deviceId 12348200
 
-friendlyName="Rundqvist IPTV"
+for port in $(var -k tuner.port)
+do
+var deviceId + 1
+friendlyName="IPTV $port"
 manufacturer="Silicondust"
 modelName="HDHR-2US"
 modelNumber="HDHR-2US"
 serialNumber=""
-deviceId="12348201"
-deviceAuth="rundqvist"
-baseUrl="http://$hostIp:8888"
+deviceAuth="iptv$port"
+baseUrl="http://$hostIp:$port"
 lineupUrl="$baseUrl/lineup.json"
 
-mkdir -p /www/
+mkdir -p /www/$port/
 
-cat << EOF > /www/device.xml
+cat << EOF > /www/$port/device.xml
 <root xmlns="urn:schemas-upnp-org:device-1-0">
     <specVersion>
         <major>1</major>
@@ -28,12 +31,12 @@ cat << EOF > /www/device.xml
         <modelName>$modelName</modelName>
         <modelNumber>$modelNumber</modelNumber>
         <serialNumber>$serialNumber/serialNumber>
-        <UDN>uuid:$deviceId</UDN>
+        <UDN>uuid:$(var deviceId)</UDN>
     </device>
 </root>
 EOF
 
-cat << EOF > /www/discover.json
+cat << EOF > /www/$port/discover.json
 {
     "FriendlyName":"$friendlyName",
     "Manufacturer":"$manufacturer",
@@ -41,26 +44,29 @@ cat << EOF > /www/discover.json
     "FirmwareName":"hdhomeruntc_atsc",
     "TunerCount":1,
     "FirmwareVersion":"20150826",
-    "DeviceID":"$deviceId",
+    "DeviceID":"$(var deviceId)",
     "DeviceAuth":"$deviceAuth",
     "BaseURL":"$baseUrl",
     "LineupURL":"$lineupUrl"
 }
 EOF
 
-cat << EOF > /www/lineup_status.json
+cat << EOF > /www/$port/lineup_status.json
 {"ScanInProgress":0,"ScanPossible":1,"Source":"Cable","SourceList":["Cable"]}
 EOF
 
-echo "[" > /www/lineup.json
-for service in $(var IPTV_SERVICES)
+var -d delimiter
+echo "[" > /www/$port/lineup.json
+for service in $(var -k tuner.port $port)
 do
     for channel in $(var -k iptv.channel $service)
     do
-cat << EOF >> /www/lineup.json
-$(var delimiter){"GuideNumber":"$(var -k iptv.port $channel)","GuideName":"$(var -k iptv.name $channel)","URL":"http://$(var HOST_IP):1935/$(var -k iptv.port $channel).ts"}
+cat << EOF >> /www/$port/lineup.json
+$(var delimiter){"GuideNumber":"$(var -k channel.port $channel)","GuideName":"$(var -k channel.name $channel)","URL":"http://$(var HOST_IP):1935/$(var -k channel.port $channel).ts"}
 EOF
 var delimiter ","
     done
 done
-echo "]" >> /www/lineup.json
+echo "]" >> /www/$port/lineup.json
+
+done
