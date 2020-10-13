@@ -62,7 +62,7 @@ do
     for channel in $(var -k iptv.channel $service)
     do
 cat << EOF >> /www/$port/lineup.json
-$(var delimiter){"GuideNumber":"$(var -k channel.port $channel)","GuideName":"$(var -k channel.name $channel)","URL":"http://$(var HOST_IP):1935/$(var -k channel.port $channel).ts"}
+$(var delimiter){"GuideNumber":"$(var -k channel.position $channel)","GuideName":"$(var -k channel.name $channel)","URL":"http://$(var HOST_IP):1935/$(var -k channel.port $channel).ts"}
 EOF
 var delimiter ","
     done

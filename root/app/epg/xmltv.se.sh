@@ -8,6 +8,23 @@ mkdir -p $EPG_OUTPUT_PATH
 
 format="http://{provider}/{channel}_{date}.xml"
 
+function createChannel
+{
+    channel=$1
+
+    rm -f $CACHE_PATH"channel_$channel.xml"
+    name=$(var -k channel.name "$channel")
+    id=$(var -k channel.position "$channel")
+
+cat << EOF > $CACHE_PATH"channel_$channel.xml"
+<channel id="$id">
+  <display-name>$name</display-name>
+  <icon src="https://chanlogos.xmltv.se/$channel.png" />
+</channel>
+EOF
+
+}
+
 while [ "$(var -k epgDaemon xmltv.se)" = "true" ] ; do
 
     #
@@ -31,16 +48,7 @@ while [ "$(var -k epgDaemon xmltv.se)" = "true" ] ; do
                 
                 for channel in $(var -k iptv.channel $service)
                 do
-
-                    rm -f $CACHE_PATH"channel_$channel.xml"
-                    name=$(var -k channel.name "$channel")
-
-cat << EOF > $CACHE_PATH"channel_$channel.xml"
-<channel id="$channel">
-  <display-name>$name</display-name>
-  <icon src="https://chanlogos.xmltv.se/$channel.png" />
-</channel>
-EOF
+                    createChannel "$channel"
 
                     url=$(echo "$format" | sed -e "s/{provider}/$provider/" -e "s/{channel}/$channel/" -e "s/{date}/$filedate/")
                     file=${url##*/}
@@ -50,7 +58,11 @@ EOF
                         log -v epg "Download: $url to $EPG_CACHE_PATH$file"
                         wget -P $EPG_CACHE_PATH $url
 
-                        if [ $? -eq 0 ] ; then
+                        if [ $? -eq 0 ]
+                        then
+                            id=$(var -k channel.position "$channel")
+                            sed -i "s/channel=\"$channel\"/channel=\"$id\"/g" $EPG_CACHE_PATH$file
+
                             var epgUpdated true
                             var epgUpdatedDate $(date +%Y-%m-%d)
                         else
